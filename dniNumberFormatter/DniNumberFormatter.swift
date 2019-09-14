@@ -18,6 +18,9 @@ public class DniNumberFormatter: Formatter {
     /// The maximum number of digits after the radix separator.
     public var maximumFractionDigits: Int = 10
 
+    /// Character used to seperate the integer and fractional parts of the number.
+    public var radixSeparator: String = "."
+
 
     override public func string(for object: Any?) -> String? {
         guard let number = object as? Double else { return nil }
@@ -54,7 +57,7 @@ public class DniNumberFormatter: Formatter {
         }.joined()
 
         if !fraction.isEmpty {
-            string += "." + fraction.map { DniNumberFormatter.digitAsString($0) }.joined()
+            string += radixSeparator + fraction.map { DniNumberFormatter.digitAsString($0) }.joined()
         }
 
         return string
