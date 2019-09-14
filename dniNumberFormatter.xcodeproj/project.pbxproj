@@ -10,6 +10,8 @@
 		54F301F7232D5D2100B63862 /* dniNumberFormatter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 54F301ED232D5D2100B63862 /* dniNumberFormatter.framework */; };
 		54F301FC232D5D2100B63862 /* dniNumberFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F301FB232D5D2100B63862 /* dniNumberFormatterTests.swift */; };
 		54F301FE232D5D2100B63862 /* dniNumberFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 54F301F0232D5D2100B63862 /* dniNumberFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		54F30209232D5D6500B63862 /* DniNumberFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F30208232D5D6500B63862 /* DniNumberFormatter.swift */; };
+		54F3020B232D5D8300B63862 /* Decimal+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F3020A232D5D8300B63862 /* Decimal+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +31,8 @@
 		54F301F6232D5D2100B63862 /* dniNumberFormatterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dniNumberFormatterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		54F301FB232D5D2100B63862 /* dniNumberFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dniNumberFormatterTests.swift; sourceTree = "<group>"; };
 		54F301FD232D5D2100B63862 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		54F30208232D5D6500B63862 /* DniNumberFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DniNumberFormatter.swift; sourceTree = "<group>"; };
+		54F3020A232D5D8300B63862 /* Decimal+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Decimal+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,7 +75,9 @@
 		54F301EF232D5D2100B63862 /* dniNumberFormatter */ = {
 			isa = PBXGroup;
 			children = (
+				54F3020A232D5D8300B63862 /* Decimal+Extensions.swift */,
 				54F301F0232D5D2100B63862 /* dniNumberFormatter.h */,
+				54F30208232D5D6500B63862 /* DniNumberFormatter.swift */,
 				54F301F1232D5D2100B63862 /* Info.plist */,
 			);
 			path = dniNumberFormatter;
@@ -108,6 +114,7 @@
 				54F301E9232D5D2100B63862 /* Sources */,
 				54F301EA232D5D2100B63862 /* Frameworks */,
 				54F301EB232D5D2100B63862 /* Resources */,
+				54F30207232D5D4400B63862 /* Increment Build Number */,
 			);
 			buildRules = (
 			);
@@ -148,6 +155,7 @@
 				TargetAttributes = {
 					54F301EC232D5D2100B63862 = {
 						CreatedOnToolsVersion = 11.0;
+						LastSwiftMigration = 1100;
 					};
 					54F301F5232D5D2100B63862 = {
 						CreatedOnToolsVersion = 11.0;
@@ -190,11 +198,34 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		54F30207232D5D4400B63862 /* Increment Build Number */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Increment Build Number";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "buildNumber=$(/usr/libexec/PlistBuddy -c \"Print CFBundleVersion\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\")\nbuildNumber=$(($buildNumber + 1))\n/usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $buildNumber\" \"${PROJECT_DIR}/${INFOPLIST_FILE}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		54F301E9232D5D2100B63862 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				54F30209232D5D6500B63862 /* DniNumberFormatter.swift in Sources */,
+				54F3020B232D5D8300B63862 /* Decimal+Extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -340,6 +371,7 @@
 		54F30202232D5D2100B63862 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = WY43EC959T;
@@ -356,6 +388,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = space.arbron.dniNumberFormatter;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -364,6 +397,7 @@
 		54F30203232D5D2100B63862 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = WY43EC959T;
@@ -388,6 +422,7 @@
 		54F30205232D5D2100B63862 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = WY43EC959T;
 				INFOPLIST_FILE = dniNumberFormatterTests/Info.plist;
@@ -406,6 +441,7 @@
 		54F30206232D5D2100B63862 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = WY43EC959T;
 				INFOPLIST_FILE = dniNumberFormatterTests/Info.plist;
