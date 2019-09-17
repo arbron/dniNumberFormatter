@@ -9,6 +9,24 @@
 import Foundation
 
 public class DniNumberFormatter: Formatter {
+    /// The rounding behavior used when fewer decimals are available then displayable.
+    public var roundingMode: RoundingMode = .nearest
+
+    public enum RoundingMode {
+        /// Round towards positive infinity.
+        case ceiling
+        /// Round towards negative infinity.
+        case floor
+
+        /// Round towards zero.
+        case down
+        /// Round away from zero.
+        case up
+
+        /// Round towards nearest integer.
+        case nearest
+    }
+
     /// The maximum number of digits before the radix seperator.
     public var minimumIntegerDigits: Int = 0
     /// The minimum number of digits before the radix seperator.
@@ -29,7 +47,7 @@ public class DniNumberFormatter: Formatter {
     }
 
     public func string(forNumber number: Decimal) -> String? {
-        var (integer, fraction) = DniNumberFormatter.base25Components(number, maximumFractionDigits: maximumFractionDigits)
+        var (integer, fraction, isNegative) = DniNumberFormatter.base25Components(number, maximumFractionDigits: maximumFractionDigits)
 
         // Pad values with zero if necessary
         if integer.count < minimumIntegerDigits {
@@ -42,6 +60,25 @@ public class DniNumberFormatter: Formatter {
         if fraction.count < minimumFractionDigits {
             fraction.append(contentsOf: Array(repeating: 0, count: minimumFractionDigits - fraction.count))
         } else if fraction.count > maximumFractionDigits {
+            while fraction.count > maximumFractionDigits {
+                guard let last = fraction.popLast() else { break }
+
+                let roundedUp: Bool
+                switch (isNegative, roundingMode) {
+                case (false, .ceiling), (true, .floor), (_, .up): roundedUp = last > 0 ? true : false
+                case (true, .ceiling), (false, .floor), (_, .down): roundedUp = false
+                case (_ , .nearest): roundedUp = last > 12 ? true : false
+                }
+
+                if roundedUp {
+                    if let newLast = fraction.last {
+                        fraction[fraction.endIndex - 1] = newLast + 1
+                    } else {
+                        let lastInteger = integer.last ?? 0
+                        integer[integer.endIndex - 1] = lastInteger + 1
+                    }
+                }
+            }
             fraction.removeLast(fraction.count - maximumFractionDigits)
         }
 
@@ -58,6 +95,10 @@ public class DniNumberFormatter: Formatter {
 
         if !fraction.isEmpty {
             string += radixSeparator + fraction.map { DniNumberFormatter.digitAsString($0) }.joined()
+        }
+
+        if isNegative && string != "0" {
+            string = "-\(string)"
         }
 
         return string
@@ -114,15 +155,18 @@ public class DniNumberFormatter: Formatter {
 
 // MARK: Splitting Number
 extension DniNumberFormatter {
-    class func base25Components(_ number: Decimal, maximumFractionDigits: Int = 10) -> ([Int], [Int]) {
-        var integralData = CalcData(number: number.floored())
-        let fractional = number - integralData.number
+    fileprivate class func base25Components(_ number: Decimal, maximumFractionDigits: Int = 10) -> (integral: [Int], fractional: [Int], negative: Bool) {
+        let isNegative = number < 0
+
+        let workingNumber = !isNegative ? number : -number
+        var integralData = CalcData(number: workingNumber.floored())
+        let fractional = workingNumber - integralData.number
         _base25WalkUp(data: &integralData)
 
         var fractionalData = CalcData(number: fractional)
         _base25WalkDown(data: &fractionalData, maxDigits: maximumFractionDigits)
 
-        return (integralData.components, fractionalData.components)
+        return (integral: integralData.components, fractional: fractionalData.components, negative: isNegative)
     }
 
     fileprivate struct CalcData {
