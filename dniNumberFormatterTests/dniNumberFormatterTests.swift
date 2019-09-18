@@ -107,5 +107,10 @@ class dniNumberFormatterTests: XCTestCase {
 
         formatter.roundingMode = .down
         XCTAssertEqual(formatter.string(forNumber: -0.9), "0")
+
+        formatter.roundingMode = .ceiling
+        XCTAssertEqual(formatter.string(forNumber: 24.616), "10")
+        formatter.maximumIntegerDigits = 1
+        XCTAssertEqual(formatter.string(forNumber: 24.616), "0")
     }
 }

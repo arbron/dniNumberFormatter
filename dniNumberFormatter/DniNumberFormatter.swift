@@ -74,8 +74,18 @@ public class DniNumberFormatter: Formatter {
                     if let newLast = fraction.last {
                         fraction[fraction.endIndex - 1] = newLast + 1
                     } else {
-                        let lastInteger = integer.last ?? 0
-                        integer[integer.endIndex - 1] = lastInteger + 1
+                        var roundingIndex = integer.endIndex - 1
+                        while roundingIndex >= integer.startIndex {
+                            guard integer[roundingIndex] >= 24 else {
+                                integer[roundingIndex] += 1
+                                break
+                            }
+                            integer[roundingIndex] = 0
+                            if roundingIndex == integer.startIndex && integer.count < maximumIntegerDigits {
+                                integer.insert(1, at: 0)
+                            }
+                            roundingIndex -= 1
+                        }
                     }
                 }
             }
