@@ -27,7 +27,7 @@ class dniNumberFormatterTests: XCTestCase {
         XCTAssertEqual(formatter.string(forNumber: 723.456), "13{.!)")
         formatter.maximumIntegerDigits = 2
         formatter.maximumFractionDigits = 1
-        XCTAssertEqual(formatter.string(forNumber: 723.456), "3{.@")
+        XCTAssertEqual(formatter.string(forNumber: 723.456), "3{.!")
         formatter.maximumIntegerDigits = 42
         formatter.maximumFractionDigits = 10
         formatter.minimumIntegerDigits = 5

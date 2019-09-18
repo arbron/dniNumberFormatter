@@ -116,11 +116,6 @@ public class DniNumberFormatter: Formatter {
 
     public class func digitAsString(_ digit: Int, cyclic: Bool = false) -> String {
         precondition(digit >= 0 && digit <= 25, "Single D'ni numbers must be between 0 and 25.")
-        #if DEBUG
-        if digit >= 25 {
-            print("Hmm: \(digit)")
-        }
-        #endif
 
         switch digit {
         case 10:
