@@ -8,10 +8,23 @@
 
 import Foundation
 
+/// A formatter that converts between base-10 numeric values and their base-25 representation.
 public class DniNumberFormatter: Formatter {
+    // MARK: Converting Between Numbers and Strings
+    /// Attempt to convert the provided object into a number before converting.
+    ///
+    /// - Returns: Formatted string if conversion is positible, otherwise `nil`.
+    override public func string(for object: Any?) -> String? {
+        guard let number = object as? Double else { return nil }
+
+        return string(forNumber: Decimal(floatLiteral: number))
+    }
+
+    // MARK: Configuring Rounding Behavior
     /// The rounding behavior used when fewer decimals are available then displayable.
     public var roundingMode: RoundingMode = .nearest
 
+    /// These constants are used to specify how numbers should be rounded.
     public enum RoundingMode {
         /// Round towards positive infinity.
         case ceiling
@@ -27,24 +40,59 @@ public class DniNumberFormatter: Formatter {
         case nearest
     }
 
+    // MARK: Configuring Integer and Fraction Digits
     /// The maximum number of digits before the radix seperator.
+    ///
+    /// The default value of this property is 0.
     public var minimumIntegerDigits: Int = 0
+
     /// The minimum number of digits before the radix seperator.
+    ///
+    /// The default value of this property is 42.
     public var maximumIntegerDigits: Int = 42
+
     /// The minimum number of digits after the radix separator.
+    ///
+    /// The default value of this property is 0.
     public var minimumFractionDigits: Int = 0
+
     /// The maximum number of digits after the radix separator.
+    ///
+    /// The default value of this property is 10.
     public var maximumFractionDigits: Int = 10
 
+    // MARK: Configuring Numeric Symbols
+    /// The string used to represent a minus sign.
+    ///
+    /// The default value of this property is "−".
+    public var minusSign: String = "−"
+
+    /// The string used to represent a plus sign.
+    ///
+    /// The default value of this property is "+".
+    public var plusSign: String = "+"
+
+    // MARK: Configuring Seperators and Grouping Size
+    /// The string used to seperate integers into groups of digits.
+    ///
+    /// The default value of this property is ",".
+    public var groupingSeparator: String = ","
+
+    /// Determines whether the formatted number displays the group separator.
+    ///
+    /// The default value of this property is `false`.
+    public var usesGroupingSeparator: Bool = false
+
+    /// The size of groups to separate with the grouping separator.
+    ///
+    /// The default value of this property is 3.
+    public var groupingSize: Int = 3
+
     /// Character used to seperate the integer and fractional parts of the number.
+    ///
+    /// The default value of this property is ".".
     public var radixSeparator: String = "."
 
-
-    override public func string(for object: Any?) -> String? {
-        guard let number = object as? Double else { return nil }
-
-        return string(forNumber: Decimal(floatLiteral: number))
-    }
 
     public func string(forNumber number: Decimal) -> String? {
         var (integer, fraction, isNegative) = DniNumberFormatter.base25Components(number, maximumFractionDigits: maximumFractionDigits)
