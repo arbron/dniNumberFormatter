@@ -13,11 +13,24 @@ public class DniNumberFormatter: Formatter {
     // MARK: Converting Between Numbers and Strings
     /// Attempt to convert the provided object into a number before converting.
     ///
+    /// - Parameter object: Object that the formatter will attempt to convert into a number
+    ///     for formatting.
     /// - Returns: Formatted string if conversion is positible, otherwise `nil`.
     override public func string(for object: Any?) -> String? {
         guard let number = object as? Double else { return nil }
 
         return string(forNumber: Decimal(floatLiteral: number))
+    }
+
+    /// Returns the string representation for a single D'ni digit.
+    ///
+    /// - Parameter digit: Number to convert into a D'ni string. Shoule be between
+    ///     0 and 25 inclusive.
+    /// - Returns: String that coresponds to the prodivded digit or `nil` if provided
+    ///     value cannot be represented by a single D'ni digit.
+    public func string(forDigit digit: Int) -> String? {
+        guard digit >= 0 && digit <= 25 else { return nil }
+        return String(DniNumberFormatter.characterForDigit(digit))
     }
 
     // MARK: Configuring Rounding Behavior
@@ -147,12 +160,12 @@ public class DniNumberFormatter: Formatter {
             }
         }
 
-        var string = integer.map {
-            DniNumberFormatter.digitAsString($0)
-        }.joined()
+        var string = String(integer.map {
+            DniNumberFormatter.characterForDigit($0)
+        })
 
         if !fraction.isEmpty {
-            string += radixSeparator + fraction.map { DniNumberFormatter.digitAsString($0) }.joined()
+            string += radixSeparator + String(fraction.map { DniNumberFormatter.characterForDigit($0) })
         }
 
         if isNegative && string != "0" {
@@ -161,48 +174,37 @@ public class DniNumberFormatter: Formatter {
 
         return string
     }
+}
 
-    public class func digitAsString(_ digit: Int, cyclic: Bool = false) -> String {
+extension DniNumberFormatter {
+    fileprivate class func characterForDigit(_ digit: Int, cyclic: Bool = false) -> Character {
         precondition(digit >= 0 && digit <= 25, "Single D'ni numbers must be between 0 and 25.")
 
         switch digit {
-        case 10:
-            return ")"
-        case 11:
-            return "!"
-        case 12:
-            return "@"
-        case 13:
-            return "#"
-        case 14:
-            return "$"
-        case 15:
-            return "%"
-        case 16:
-            return "^"
-        case 17:
-            return "&"
-        case 18:
-            return "*"
-        case 19:
-            return "("
-        case 20:
-            return "["
-        case 21:
-            return "]"
-        case 22:
-            return "\\"
-        case 23:
-            return "{"
-        case 24:
-            return "}"
-        case 25:
-            return cyclic ? "=" : "|"
-        case 0:
-            return cyclic ? "=" : "0"
-        default:
-            return "\(digit)"
+        case 10: return ")"
+        case 11: return "!"
+        case 12: return "@"
+        case 13: return "#"
+        case 14: return "$"
+        case 15: return "%"
+        case 16: return "^"
+        case 17: return "&"
+        case 18: return "*"
+        case 19: return "("
+        case 20: return "["
+        case 21: return "]"
+        case 22: return "\\"
+        case 23: return "{"
+        case 24: return "}"
+        case 25: return cyclic ? "=" : "|"
+        case 0: return cyclic ? "=" : "0"
+        default: return digit.description.first!
         }
+    }
+
+    @available(*, deprecated, message: "Use string(forDigit:cyclic:) instead.")
+    public class func digitAsString(_ digit: Int, cyclic: Bool = false) -> String {
+        return String(DniNumberFormatter.characterForDigit(digit, cyclic: cyclic))
     }
 }
 
