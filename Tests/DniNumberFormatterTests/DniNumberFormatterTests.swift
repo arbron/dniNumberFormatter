@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import dniNumberFormatter
+@testable import DniNumberFormatter
 
 class dniNumberFormatterTests: XCTestCase {
     func testBasicStringFormatting() {
