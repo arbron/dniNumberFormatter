@@ -113,4 +113,11 @@ class dniNumberFormatterTests: XCTestCase {
         formatter.maximumIntegerDigits = 1
         XCTAssertEqual(formatter.string(forNumber: 24.616), "0")
     }
+
+    static var allTests = [
+        ("testBasicStringFormatting", testBasicStringFormatting),
+        ("testNegativeFormatting", testNegativeFormatting),
+        ("testMinAndMaxDigits", testMinAndMaxDigits),
+        ("testRoundingModes", testRoundingModes),
+    ]
 }
