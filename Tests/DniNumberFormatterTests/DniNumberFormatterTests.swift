@@ -19,7 +19,7 @@ class dniNumberFormatterTests: XCTestCase {
 
     func testNegativeFormatting() {
         let formatter = DniNumberFormatter()
-        XCTAssertEqual(formatter.string(forNumber: -1), "-1")
+        XCTAssertEqual(formatter.string(forNumber: -1), "−1")
     }
 
     func testMinAndMaxDigits() {
@@ -58,20 +58,20 @@ class dniNumberFormatterTests: XCTestCase {
         XCTAssertEqual(formatter.string(forNumber: 0.632), "0.%")
 
         formatter.roundingMode = .nearest
-        XCTAssertEqual(formatter.string(forNumber: -0.632), "-0.^")
-        XCTAssertEqual(formatter.string(forNumber: -0.616), "-0.%")
+        XCTAssertEqual(formatter.string(forNumber: -0.632), "−0.^")
+        XCTAssertEqual(formatter.string(forNumber: -0.616), "−0.%")
 
         formatter.roundingMode = .ceiling
-        XCTAssertEqual(formatter.string(forNumber: -0.632), "-0.%")
+        XCTAssertEqual(formatter.string(forNumber: -0.632), "−0.%")
 
         formatter.roundingMode = .up
-        XCTAssertEqual(formatter.string(forNumber: -0.632), "-0.^")
+        XCTAssertEqual(formatter.string(forNumber: -0.632), "−0.^")
 
         formatter.roundingMode = .floor
-        XCTAssertEqual(formatter.string(forNumber: -0.632), "-0.^")
+        XCTAssertEqual(formatter.string(forNumber: -0.632), "−0.^")
 
         formatter.roundingMode = .down
-        XCTAssertEqual(formatter.string(forNumber: -0.632), "-0.%")
+        XCTAssertEqual(formatter.string(forNumber: -0.632), "−0.%")
 
         // MARK: Integer Rounding
         formatter.maximumFractionDigits = 0
@@ -93,17 +93,17 @@ class dniNumberFormatterTests: XCTestCase {
         XCTAssertEqual(formatter.string(forNumber: 0.9), "0")
 
         formatter.roundingMode = .nearest
-        XCTAssertEqual(formatter.string(forNumber: -0.9), "-1")
+        XCTAssertEqual(formatter.string(forNumber: -0.9), "−1")
         XCTAssertEqual(formatter.string(forNumber: -0.2), "0")
 
         formatter.roundingMode = .ceiling
         XCTAssertEqual(formatter.string(forNumber: -0.9), "0")
 
         formatter.roundingMode = .up
-        XCTAssertEqual(formatter.string(forNumber: -0.9), "-1")
+        XCTAssertEqual(formatter.string(forNumber: -0.9), "−1")
 
         formatter.roundingMode = .floor
-        XCTAssertEqual(formatter.string(forNumber: -0.9), "-1")
+        XCTAssertEqual(formatter.string(forNumber: -0.9), "−1")
 
         formatter.roundingMode = .down
         XCTAssertEqual(formatter.string(forNumber: -0.9), "0")

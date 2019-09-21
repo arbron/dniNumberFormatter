@@ -22,6 +22,28 @@ public class DniNumberFormatter: Formatter {
         return string(forNumber: Decimal(floatLiteral: number))
     }
 
+    /// Convert the provided decimal number into a base-25 string with D'ni encoding.
+    ///
+    /// - Parameter number: Base-10 number to format.
+    /// - Returns: Number formatted in base-25 with D'ni encoding.
+    public func string(forNumber number: Decimal) -> String {
+        let (string, _) = formString(number)
+        return string
+    }
+
+    /// Convert the provided decimal number into a base-25 string with D'ni encoding while
+    /// keeping track of whether the number overflowed past `maximumIntegerDigits`.
+    ///
+    /// - Parameters:
+    ///     - number: Base-10 number to format.
+    ///     - overflowed: Boolean indicating whether the result overflowed.
+    /// - Returns: Number formatted in base-25 with D'ni encoding.
+    public func string(forNumber number: Decimal, trackingOverflow overflowed: inout Bool) -> String {
+        let (string, over) = formString(number)
+        overflowed = over
+        return string
+    }
+
     /// Returns the string representation for a single D'ni digit.
     ///
     /// - Parameter digit: Number to convert into a D'ni string. Shoule be between
@@ -105,75 +127,6 @@ public class DniNumberFormatter: Formatter {
     ///
     /// The default value of this property is ".".
     public var radixSeparator: String = "."
-
-
-    public func string(forNumber number: Decimal) -> String? {
-        var (integer, fraction, isNegative) = DniNumberFormatter.base25Components(number, maximumFractionDigits: maximumFractionDigits)
-
-        // Pad values with zero if necessary
-        if integer.count < minimumIntegerDigits {
-            var newArray = Array(repeating: 0, count: minimumIntegerDigits - integer.count)
-            newArray.append(contentsOf: integer)
-            integer = newArray
-        } else if integer.count > maximumIntegerDigits {
-            integer.removeFirst(integer.count - maximumIntegerDigits)
-        }
-        if fraction.count < minimumFractionDigits {
-            fraction.append(contentsOf: Array(repeating: 0, count: minimumFractionDigits - fraction.count))
-        } else if fraction.count > maximumFractionDigits {
-            while fraction.count > maximumFractionDigits {
-                guard let last = fraction.popLast() else { break }
-
-                let roundedUp: Bool
-                switch (isNegative, roundingMode) {
-                case (false, .ceiling), (true, .floor), (_, .up): roundedUp = last > 0 ? true : false
-                case (true, .ceiling), (false, .floor), (_, .down): roundedUp = false
-                case (_ , .nearest): roundedUp = last > 12 ? true : false
-                }
-
-                if roundedUp {
-                    if let newLast = fraction.last {
-                        fraction[fraction.endIndex - 1] = newLast + 1
-                    } else {
-                        var roundingIndex = integer.endIndex - 1
-                        while roundingIndex >= integer.startIndex {
-                            guard integer[roundingIndex] >= 24 else {
-                                integer[roundingIndex] += 1
-                                break
-                            }
-                            integer[roundingIndex] = 0
-                            if roundingIndex == integer.startIndex && integer.count < maximumIntegerDigits {
-                                integer.insert(1, at: 0)
-                            }
-                            roundingIndex -= 1
-                        }
-                    }
-                }
-            }
-            fraction.removeLast(fraction.count - maximumFractionDigits)
-        }
-
-        // Remove unnecessary zeroes from fraction.
-        if fraction.count > minimumFractionDigits {
-            while fraction.count > minimumFractionDigits && fraction.last == 0 {
-                fraction.removeLast()
-            }
-        }
-
-        var string = String(integer.map {
-            DniNumberFormatter.characterForDigit($0)
-        })
-
-        if !fraction.isEmpty {
-            string += radixSeparator + String(fraction.map { DniNumberFormatter.characterForDigit($0) })
-        }
-
-        if isNegative && string != "0" {
-            string = "-\(string)"
-        }
-
-        return string
-    }
 }
 
 extension DniNumberFormatter {
@@ -208,8 +161,116 @@ extension DniNumberFormatter {
     }
 }
 
-// MARK: Splitting Number
 extension DniNumberFormatter {
+    /// Create a formatted string from the provided number using the system's settings.
+    ///
+    /// - Parameter number: Number to format into a string.
+    /// - Returns: String with the number formatted in base-25 D'ni style & boolean indicating whether
+    ///     the integral values overflowed past `maximumIntegerDigits`.
+    fileprivate func formString(_ number: Decimal) -> (result: String, overflowed: Bool) {
+        var (integral, fractional, isNegative) = DniNumberFormatter.base25Components(number, maximumFractionDigits: maximumFractionDigits + 1)
+
+        let overflowed = respectMinMaxDigits(&integral, &fractional, isNegative: isNegative)
+
+        // Remove unnecessary zeroes from fraction.
+        if fractional.count > minimumFractionDigits {
+            while fractional.count > minimumFractionDigits && fractional.last == 0 {
+                fractional.removeLast()
+            }
+        }
+
+        var string = String(integral.map {
+            DniNumberFormatter.characterForDigit($0)
+        })
+
+        if !fractional.isEmpty {
+            string += radixSeparator + String(fractional.map { DniNumberFormatter.characterForDigit($0) })
+        }
+
+        if isNegative && string != "0" {
+            string = "\(minusSign)\(string)"
+        }
+
+        return (result: string, overflowed: overflowed)
+    }
+
+    /// Add or remove digits from the integral and fractional portions to respect the minimum & maximum values.
+    ///
+    /// - Parameters:
+    ///     - integral: Array of digits in the portion of the number before the radix point.
+    ///     - fractional: Array of digits in the portion of the number after the radix point.
+    ///     - isNegative: Boolean indicating whether the number is below zero, used for rounding.
+    /// - Returns:A boolean value indicating whether the integral value was rounded past the maximum
+    ///     number of digits.
+    @discardableResult
+    fileprivate func respectMinMaxDigits(_ integral: inout [Int], _ fractional: inout [Int], isNegative: Bool) -> Bool {
+        precondition(maximumIntegerDigits >= minimumIntegerDigits && maximumFractionDigits >= minimumFractionDigits,
+                     "Maximum allowed digits must be larger than or equal to the minimum.")
+
+        /// Boolean to indicate whether the fractional rounding should carry over into the integral values.
+        var fractionalRoundedUp = false
+
+        // Add or remove fractional digits to be within allowed range.
+        if fractional.count < minimumFractionDigits {
+            fractional.append(contentsOf: Array(repeating: 0, count: minimumFractionDigits - fractional.count))
+        } else if fractional.count > maximumFractionDigits {
+            while fractional.count > maximumFractionDigits {
+                guard let last = fractional.popLast() else { break }
+
+                let roundedUp: Bool
+                switch (isNegative, roundingMode) {
+                case (false, .ceiling), (true, .floor), (_, .up): roundedUp = last > 0 ? true : false
+                case (true, .ceiling), (false, .floor), (_, .down): roundedUp = false
+                case (_, .nearest): roundedUp = last > 12 ? true : false
+                }
+
+                guard roundedUp else { continue }
+                guard !fractional.isEmpty else {
+                    fractionalRoundedUp = true
+                    break
+                }
+
+                fractional[fractional.endIndex - 1] += 1
+            }
+
+//            fraction.removeLast(fraction.count - maximumFractionDigits)
+        }
+
+        // Continue fractional rounding into integrals if necessary.
+        if fractionalRoundedUp {
+            if integral.isEmpty {
+                integral.append(1)
+            } else {
+                var index = integral.endIndex - 1
+                while index >= integral.startIndex {
+                    guard integral[index] >= 24 else {
+                        integral[index] += 1
+                        break
+                    }
+                    integral[index] = 0
+                    if integral[index] == integral.startIndex {
+                        integral.insert(1, at: 0)
+                        break
+                    }
+                    index -= 1
+                }
+            }
+        }
+
+        // Add or remove integral digits to be within allowed range.
+        if integral.count < minimumIntegerDigits {
+            var zerosArray = Array(repeating: 0, count: minimumIntegerDigits - integral.count)
+            zerosArray.append(contentsOf: integral)
+            integral = zerosArray
+        } else if integral.count > maximumIntegerDigits {
+            integral.removeFirst(integral.count - maximumIntegerDigits)
+            return true
+        }
+
+        return false
+    }
+
+    // MARK: Splitting Number
     fileprivate class func base25Components(_ number: Decimal, maximumFractionDigits: Int = 10) -> (integral: [Int], fractional: [Int], negative: Bool) {
         let isNegative = number < 0
 
